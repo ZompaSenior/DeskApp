@@ -76,9 +76,9 @@ def main(argv: list) -> int:
     # Costruisco il gestore delle risorse. Questo è un oggetto che contiene i
     # riferimenti a tutti i componenti principali dell'applicazione
     resources = r.ResourceManager(path,
-                                  option,
                                   config,
                                   log,
+                                  option,
                                   indexer,
                                   digger,
                                   meta)

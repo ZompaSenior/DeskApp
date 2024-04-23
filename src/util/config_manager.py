@@ -8,11 +8,7 @@ import configparser
 # Project Import
 from util import option_manager as om
 from util import path_manager as pm
-
-
-S_DEFAULT = 'common'
-S_PATH = 'path'
-
+# from util import config_manager_constants as cmc
 
 
 class ConfigManager(configparser.ConfigParser):
@@ -31,7 +27,14 @@ class ConfigManager(configparser.ConfigParser):
         super().__init__()
             # interpolation = configparser.ExtendedInterpolation)
             # default_sction = S_DEFAULT)
-            
-        self.read(path.config_path)
         
+        self.__config_path = path.config_path
+        
+        self.read(self.__config_path, "utf-8")
+        
+    def save(self):
+        """Permette di salvare le modifiche apportate alla configurazione"""
+        
+        with open(self.__config_path, 'w') as f:
+            self.write(f)
         

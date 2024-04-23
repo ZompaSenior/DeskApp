@@ -1,10 +1,58 @@
 """Modulo per la gestione dei log dell'applicazione."""
 
-# Standard Import
 import logging
+from PySide6 import QtCore
+from PySide6 import QtGui
 
-# Site-package Import
-# Project Import
+
+class Signaller(QtCore.QObject):
+    signal = QtCore.Signal(str, str, str)
+    
+
+class HandlerFunction(logging.Handler):
+    """Un custom handler per la scrittura su controllo grafico."""
+    
+    def __init__(self, level = logging.NOTSET):
+        logging.Handler.__init__(self, level)
+        
+        self.signaller = Signaller()
+        self.__function = False
+    
+    @property
+    def function(self):
+        return self.__function
+    
+    @function.setter
+    def function(self, value):
+        self.signaller.signal.connect(value)
+        self.__function = True
+    
+    def emit(self, record):
+        try:
+            if(self.__function):
+                log_entry = self.format(record)
+                self.signaller.signal.emit(log_entry,
+                                           "\n",
+                                           self.__level_color(record.levelno))
+                
+        except Exception as e:
+            print(e)
+            # pass
+
+    @staticmethod
+    def __level_color(level):
+        
+        if(level == logging.DEBUG):
+            return "brown"
+        
+        elif(level == logging.INFO):
+            return "white"
+        
+        elif(level == logging.WARNING):
+            return "blue"
+        
+        elif(level == logging.ERROR):
+            return "red"
 
 
 class LoggerManager:
@@ -23,7 +71,7 @@ class LoggerManager:
     def __init__(self, name, log_file=None,
                  base_log_level=1, file_log_level=None, console_log_level=None):
         
-        self.logger = logging.getLogger(name)
+        self.__logger = logging.getLogger(name)
         
         # Verifica livello BASE del Debug: standard = 1: passa tutto
         try:
@@ -48,7 +96,7 @@ class LoggerManager:
 
         
         # Imposto il livello alla base dei log che vengon passati agli Handler
-        self.logger.setLevel(base_log_level)
+        self.__logger.setLevel(base_log_level)
 
         # imposto i 2 formatter per il File (DateTime) e per la Consolle (no DateTime)
         file_formatter = logging.Formatter("%(asctime)s %(name)s > %(levelname)-9s%(message)s", datefmt="%Y.%m.%d %H:%M:%S")
@@ -59,29 +107,45 @@ class LoggerManager:
             file_handler = logging.FileHandler(log_file)
             file_handler.setLevel(file_log_level)
             file_handler.setFormatter(file_formatter)
-            self.logger.addHandler(file_handler)
+            self.__logger.addHandler(file_handler)
         
         ''' sulla Console imposto sempre il Logging, poi valutiamo insieme'''
         console_handler = logging.StreamHandler()
         console_handler.setLevel(console_log_level)
         console_handler.setFormatter(cons_formatter)
-        self.logger.addHandler(console_handler)
+        self.__logger.addHandler(console_handler)
+        
+        # Creo ed aggiungo l'handler che mostra a monitor l'output
+        self.__function_handler = HandlerFunction()
+        self.__function_handler.setLevel(console_log_level)
+        # self.__function_handler.setFormatter(formatter)
+        self.__logger.addHandler(self.__function_handler)
+        
     
     # override dei messaggi di Output del Logging
     def debug(self, message):
-        self.logger.debug(message)
+        self.__logger.debug(message)
         
     def info(self, message):
-        self.logger.info(message)
+        self.__logger.info(message)
         
     def warning(self, message):
-        self.logger.warning(message)
+        self.__logger.warning(message)
         
     def error(self, message):
-        self.logger.error(message)
+        self.__logger.error(message)
         
     def critical(self, message):
-        self.logger.critical(message)
+        self.__logger.critical(message)
+    
+    @property
+    def handler_function(self):
+        return self.__function_handler.function
+    
+    @handler_function.setter
+    def handler_function(self, value):
+        self.__function_handler.function = value
+        
 
 
 

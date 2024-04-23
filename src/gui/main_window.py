@@ -11,6 +11,7 @@ from PySide6 import QtCore
 from util import resource as r
 from pickle import TRUE
 from PySide6.QtCore import Slot
+from gui import log_widget
 
 
 class MainBase(QtWidgets.QMainWindow):
@@ -66,6 +67,11 @@ class MainBase(QtWidgets.QMainWindow):
         self.__tab = QtWidgets.QTabWidget()
         self.__layout.addWidget(self.__tab)
         
+        # ----------------------------------------------------------------------
+        self.__log_widget = log_widget.LogWidget(self.__app.logger)
+        self.__tab.addTab(self.__log_widget, "LOG")
+        
+        # ----------------------------------------------------------------------
         self.__timer = QtCore.QTimer()
         self.__timer.timeout.connect(self.__timer__timeout)
         self.__timer.setInterval(1000)
